@@ -1,0 +1,94 @@
+
+---
+title: "clase19sept2020"
+output:
+  html_document:
+    toc: true
+---
+
+
+```{r}
+library(dplyr)
+library(SparkR)
+library(sparklyr)
+install.packages("nycflights13")
+library(nycflights13)
+```
+
+
+```{r}
+sc <- spark_connect(method = "databricks")
+data(flights)
+df_vuelos <- copy_to(sc, flights) 
+df_vuelos
+```
+
+
+```{r}
+df_vuelos %>% dplyr::select(year, month, arr_delay, distance, carrier) %>% show_query()
+```
+
+
+```{r}
+datos <- df_vuelos %>% dplyr::select(year, month, origin, dest, arr_delay, distance, carrier) %>% 
+dplyr::mutate(retraso_distancia = arr_delay / distance) # %>% show_query()
+datos
+
+```
+
+
+```{r}
+# En el año más reciente, calcular los retrasos poer aerolinea en el vuelo JFK (NY) y el aeropuerto de los Angeles y ver las mejores y peores aerolineas (primeras cinco y últimas cinco)
+```
+
+
+```{r}
+#datos %>% dplyr::group_by(origin) %>% dplyr::summarise(n())
+#datos %>% dplyr::group_by(dest) %>% dplyr::summarise(cuenta = n()) %>% dplyr::arrange(desc(cuenta))
+
+```
+
+
+```{r}
+#datos %>% dplyr::group_by(year) %a>% dplyr::summarise(n())
+consulta <- datos %>% dplyr::filter(origin == "JFK" & dest == "LAX") %>% dplyr::group_by(carrier) %>%
+dplyr::summarise(prom_retrasLlegada = avg(arr_delay), mediana = percentile(arr_delay, 0.5)) %>%
+dplyr::arrange(desc(prom_retrasLlegada)) 
+
+consulta
+```
+
+
+```{r}
+sdf_dim(consulta)
+```
+
+
+```{r}
+prueba <- sparklyr::spark_read_csv(sc, name = "s11", path = "/FileStore/tables/s11_2019I-2.txt", delimiter = "|")
+head(prueba)
+```
+
+
+```{r}
+spark_write_csv(prueba, "prueba_csv")
+```
+
+
+```{r}
+spark_write_parquet(prueba, "prueba_parquet")
+```
+
+
+```{r}
+prueba2 <- sparklyr::spark_read_csv(sc, name = "s11", path = "/prueba_csv")
+head(prueba2)
+
+```
+
+
+```{r}
+prueba2a <- sparklyr::spark_read_parquet(sc, name = "s11", path = "/prueba_parquet")
+head(prueba2a)
+```
+
