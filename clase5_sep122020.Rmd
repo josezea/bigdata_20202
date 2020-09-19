@@ -1,0 +1,110 @@
+
+---
+title: "clase5_sep122020"
+output:
+  html_document:
+    toc: true
+---
+
+
+```{r}
+sessionInfo()
+```
+
+
+```{r}
+library(sparklyr)
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+sc <- spark_connect(method="databricks") 
+```
+
+
+```{r}
+data(iris)
+iris_spark <- copy_to(sc, iris)
+```
+
+
+```{r}
+class(iris_spark)
+```
+
+
+```{r}
+iris_spark
+```
+
+
+```{r}
+# Desagregar el promedio de Sepal.Length por Especie
+consulta1 <- iris_spark %>% group_by(Species) %>% summarise(prom_longPetalo = mean(Sepal_Length))
+consulta1
+```
+
+
+```{r}
+#consulta2 <- collect(consulta1)
+consulta2 <- consulta1 %>% collect()
+consulta2
+
+```
+
+
+```{r}
+ggplot(data = consulta2, aes(x = Species, y = prom_longPetalo)) + geom_bar(stat = "identity")
+# ggplot(data = consulta1, aes(x = Species, y = prom_longPetalo)) + geom_bar(stat = "identity") # sale error
+```
+
+
+```{r}
+# Ejercicio 1: Guardar en la tabla1 Sepal_Length y Sepal_Width y Species
+# Guardar en la tabla 2 Petal_Length y Petal_width y Species
+# Realizar un join de las dos tablas usando iris_spark
+
+# Ejercicio 2: Tabla 1: Filtrar setosa
+# Tabla: Filtrar vidginica, Tabla 3: filtrar versicolor
+# Integrar las tres tablas con un pegado por debajo
+# Usar iris_spark
+```
+
+
+```{r}
+tabla1 <- iris_spark   %>%  filter(Species == "setosa")
+tabla2 <- iris_spark   %>%  filter(Species == "virginica")
+tabla3 <- iris_spark   %>%  filter(Species == "versicolor")
+tabla <- rbind(tabla1, tabla2)
+tabla %>% group_by(Species) %>% summarise(n = n())
+```
+
+
+```{r}
+tablaTodas <- sdf_bind_rows(tabla1, ta1bla2, tabla3)
+tablaTodas %>% group_by(Species) %>% summarise(n = n())
+sdf_dim(tablaTodas)
+```
+
+
+```{r}
+iris_spark
+```
+
+
+```{r}
+library(DBI)
+# Write SQL query
+query <- "SELECT * FROM iris_spark"
+
+# Run the query
+(results <- dbGetQuery(spark_conn, query))
+```
+
+
+```{r}
+
+```
+
