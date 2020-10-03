@@ -1,0 +1,171 @@
+
+---
+title: "pruebaSparkR"
+output:
+  html_document:
+    toc: true
+---
+
+
+```{r}
+library(SparkR)
+Sys.getenv("SPARK_HOME")
+
+```
+
+
+```{r}
+setwd("/databricks/spark")
+dir()
+```
+
+
+```{r}
+data(iris)
+iris_sdf <- createDataFrame(iris)
+head(iris_sdf)
+```
+
+
+```{r}
+head(iris_sdf)
+```
+
+
+```{r}
+# withColumn: similar al mutate
+iris_sdf <- withColumn(iris_sdf, "sepal_ratio", iris_sdf$Sepal_Length/iris_sdf$Sepal_wiDtH * 100)
+iris_sdf <- withColumn(iris_sdf, "petal_ratio", iris_sdf$petal_Length/iris_sdf$petal_width) # no sensible a mayusculas
+iris_sdf <- withColumn(iris_sdf, "constante", 1) # no sensible a mayusculas
+head(iris_sdf)
+
+```
+
+
+```{r}
+iris_sdf$petal_sepal<-iris_sdf$Petal_Length/iris_sdf$Sepal_WidtH
+head(iris_sdf)
+```
+
+
+```{r}
+iris_sdf$target <- ifelse(iris_sdf$Species == "setosa", 1, 0)
+head(iris_sdf)
+```
+
+
+```{r}
+#emp1 <- selectExpr(emp, "case Salary>2000 when TRUE then 'high' else 'low' end as sale_prob")
+tabla <- count(groupBy(iris_sdf, "target"))
+showDF(tabla)
+```
+
+
+```{r}
+iris_setosa <- SparkR::filter(iris_sdf, iris_sdf$Species == "setosa")
+head(iris_setosa)
+```
+
+
+```{r}
+iris_setosa2 <- SparkR::filter(iris_sdf, iris_sdf$Species == "setosa" & iris_sdf$Sepal_Width > 3.8)
+showDF(iris_setosa2)
+```
+
+
+```{r}
+iris_setosa2a <- select(iris_setosa, "sepal_ratio", "petal_ratio") 
+head(iris_setosa2a)
+```
+
+
+```{r}
+display(iris_setosa2a)
+```
+
+
+```{r}
+consulta1 <- avg(groupBy(iris_sdf, "Species"))
+head(consulta1)
+# Ejercicio: calcule los cuartiles por Sepal Length y particione en cuatro iris, iris$cuartilesSeplaLength
+# Agrupe por Specie y Cuartiles y promedio Petal Length y Petal Width
+# Specie Cuartil Prom_pwetalLength Prom PetalWidth
+
+```
+
+
+```{r}
+quantiles <- approxQuantile(iris_sdf, "Sepal_Length", c(0.25, 0.5, 0.75), relativeError = 0.0)
+quantiles
+
+```
+
+
+```{r}
+a = iris_sdf
+a$cuartil_sepalLength <- ifelse(iris_sdf$Sepal_Length <= quantiles[[1]], 1,
+                               ifelse(iris_sdf$Sepal_Length > quantiles[[1]] & iris_sdf$Sepal_Length <= quantiles[[2]], 2,
+                                ifelse(iris_sdf$Sepal_Length > quantiles[[2]] & iris_sdf$Sepal_Length <= quantiles[[3]], 3,
+                                       4)))
+                               
+tabla_perc <- count(groupBy(a, "cuartil_sepalLength"))
+showDF(tabla_perc)
+```
+
+
+```{r}
+head(a)
+```
+
+
+```{r}
+b <- select(a, "Species", "cuartil_sepalLength", "Petal_Length", "Sepal_Length")
+consulta_agg  <- avg(groupBy(b, "Species", "cuartil_sepalLength"))
+showDF(consulta_agg)
+
+```
+
+
+```{r}
+consulta_aggbasica <- agg(iris_sdf, prom_sepal_width = mean(iris_sdf$Sconsulta3epal_Width), conteo = count(iris_sdf$Sepal_Width))
+head(consulta_aggbasica)
+```
+
+
+```{r}
+consulta4 = agg(groupBy(iris_sdf, iris_sdf$Species), Petal_Width = 'max', Sepal_Width = 'avg')
+collect(consulta4)
+```
+
+
+```{r}
+consulta4 = agg(groupBy(iris_sdf, iris_sdf$Species), Petal_Width = 'max', Sepal_Width = 'avg')
+collect(consulta4)
+
+```
+
+
+```{r}
+# Register earlier df as temp view
+a <- iris_sdf
+createOrReplaceTempView(a, "irisTemp")
+rm(a)
+```
+
+
+```{r}
+consulta5 <- sql('SELECT avg(Sepal_Width) prom_sepalwidth, COUNT(*) cuenta FROM irisTemp GROUP BY Species')
+head(consulta5)
+```
+
+
+```{r}
+show(consulta5)
+```
+
+
+```{r}
+consulta5 <- sql("select Sepal_Width FROM irisTemp")
+head(consulta5)
+```
+
