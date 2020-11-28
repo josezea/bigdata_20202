@@ -9,8 +9,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, echo = FALSE}
 library(reticulate)
-library(tidyverse)
-library(tidymodels)
 ```
 
 ```{r}
@@ -18,29 +16,34 @@ py_discover_config()
 ```
 
 ```{r}
+
 # use_python("~/miniconda3/bin/python")
-use_python("C:/ProgramData/Anaconda3")
+use_python("C:/ProgramData/Anaconda3/envs/r-reticulate")
 py_config()
+
 ```
+
 ```{r}
 # No instalar miniconda
-#py_install("plotnine")
+#py_install("pandas")
 ```
 
 
 ```{python}
 import numpy as np 
 import pandas as pd
-import scipy.stats as st
-import matplotlib.pyplot as plt
-import plotnine as p9
+#import scipy.stats as st
+#import matplotlib.pyplot as plt
+#import plotnine as p9
 ```
 
 
 
 
 ```{python}
-a = 'Hola ' + 'mundo'
+a = 'hola ' + 'mundo'
+a
+a.capitalize()
 ```
 
 ```{r}
@@ -48,6 +51,7 @@ a = 'Hola ' + 'mundo'
 A = py$a
 A
 ```
+
 
 
 ```{python}
@@ -77,9 +81,10 @@ Otra forma de generar una serie de pandas es mediante una lista:
 ```{python}
 edad_lista = [24, 18, 15, 30, 37]
 edad_pdSeries = pd.Series(edad_lista)
-edad
 edad_pdSeries
 ```
+
+
 ```{r}
 EDAD_vctr <- py$edad_lista
 EDAD_vctr
@@ -96,7 +101,11 @@ fecha1=pd.to_datetime(fecha1, format='%Y/%m/%d')
 fecha1
 ```
 ```{r}
-py$fecha1
+fecha <- py$fecha1
+a <- as.numeric(fecha)
+#class(fecha)
+class(a) <- c("POSIXct", "POSIXt")
+a
 ```
 
 ```{python}
@@ -114,7 +123,7 @@ lista = [5, "hola", datos]
 lista
 ```
 ```{python}
-a[2]
+lista[2]
 ```
 
 ```{r}
@@ -130,7 +139,7 @@ diccionario
 ```{r}
 py$diccionario
 ```
-
+# Trabajar python desde R
 ```{r}
 library(reticulate)
 pd <- import("pandas", convert =FALSE)
