@@ -1,0 +1,188 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE}
+library(reticulate)
+library(tidyverse)
+library(tidymodels)
+```
+
+```{r}
+py_discover_config()
+```
+
+```{r}
+# use_python("~/miniconda3/bin/python")
+use_python("C:/ProgramData/Anaconda3")
+py_config()
+```
+```{r}
+# No instalar miniconda
+#py_install("plotnine")
+```
+
+
+```{python}
+import numpy as np 
+import pandas as pd
+import scipy.stats as st
+import matplotlib.pyplot as plt
+import plotnine as p9
+```
+
+
+
+
+```{python}
+a = 'Hola ' + 'mundo'
+```
+
+```{r}
+# exists(a)
+A = py$a
+A
+```
+
+
+```{python}
+nombres_array = np.array(['Jose', 'Juan', 'Ana', 'Maria', 'Diego']) 
+type(nombres)
+nombres
+```
+
+```{r}
+vctr_NOMBRES <- py$nombres_array
+```
+
+
+```{python}
+nombres_pdSeries = pd.Series(nombres_array)
+type(nombres_pdSeries)
+nombres_pdSeries
+```
+
+```{r}
+vctr_NOMBRES2 <- py$nombres_pdSeries
+vctr_NOMBRES2
+```
+
+Otra forma de generar una serie de pandas es mediante una lista:
+
+```{python}
+edad_lista = [24, 18, 15, 30, 37]
+edad_pdSeries = pd.Series(edad_lista)
+edad
+edad_pdSeries
+```
+```{r}
+EDAD_vctr <- py$edad_lista
+EDAD_vctr
+```
+
+```{r}
+EDAD_array <- py$edad_pdSeries
+EDAD_array
+```
+
+```{python}
+fecha1 = pd.Series(['1901/2/12','1901/5/13','1901/12/14'])
+fecha1=pd.to_datetime(fecha1, format='%Y/%m/%d')
+fecha1
+```
+```{r}
+py$fecha1
+```
+
+```{python}
+datos = pd.DataFrame({'ID': ['80865345', '234560123', 'CE4567423', '1043675', 'A456742'],'edad': [32, 40, 19, 29, 50],'fuma': [False, False, True, False, True], 'sexo': ['M', 'F', 'F', 'F','M']})
+datos
+```
+```{r}
+DATOS <- py$datos
+DATOS
+# class(DATOS)
+```
+
+```{python}
+lista = [5, "hola", datos]
+lista
+```
+```{python}
+a[2]
+```
+
+```{r}
+lista <- py$lista
+lista
+```
+
+
+```{python}
+diccionario = {'a':'5', 'b':[1,2,3]}
+diccionario
+```
+```{r}
+py$diccionario
+```
+
+```{r}
+library(reticulate)
+pd <- import("pandas", convert =FALSE)
+
+titanic <- pd$read_csv("https://goo.gl/4Gqsnz")
+description <- titanic$describe()
+description
+```
+
+```{r}
+description_r <- py_to_r(description)
+description_py = r_to_py(description_r)
+```
+
+
+```{r}
+py_run_string("import numpy as np")
+py_run_string("my_python_array = np.array([2,4,6,8])")
+```
+
+```{python}
+my_python_array
+```
+```{r}
+reticulate::source_python('suma.py')
+a = add(5, 10)
+a
+```
+
+# Usando R desde python
+
+```{r}
+data(iris)
+datos_iris <- iris
+```
+
+```{python}
+iris_py = r.datos_iris
+iris_py['Cociente_Petalo']=iris_py['Petal.Length']/iris_py['Petal.Width']
+iris_py
+```
+
+```{r}
+plot(py$iris_py)
+
+```
+
+
+```{r}
+a <- c(5, 3, 4)
+```
+
+```{python}
+r.a
+```
