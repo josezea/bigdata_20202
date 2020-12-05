@@ -1,0 +1,154 @@
+######################## Función Individual para ver ejemplso, no borrar ###############
+library(Rcpp)
+library(extraDistr)
+library(tictoc)
+# beta = c(NA,rep(1.4, 5));
+# Num_CasosIniciales = 1;
+# InfeccionPMin = 5;
+# InfeccionPMax = 7
+
+
+f_simula_proceso <- function(beta = c(NA,rep(1.4, 5)),
+                             Num_CasosIniciales = 1,
+                             InfeccionPMin = 5, InfeccionPMax = 7){
+  
+  
+  if(!is.na(beta[1]))  {
+    beta <- c(NA, beta)
+  }
+  cppFunction('NumericMatrix rngCpp(const int numfilas, const int numcolumnas, const int posicion,
+                                 const int minduracion, const int maxduracion) {
+   NumericVector vctdurac(numfilas);
+   for(int i = 0; i < numfilas; i++){
+   vctdurac[i] = trunc(R::runif(minduracion, maxduracion + 1));
+   }
+   NumericMatrix X(numfilas, numcolumnas);
+             for(int i = 0; i < numfilas; i++){
+                 for(int j = posicion; j <= posicion + vctdurac(i) - 1; j++){
+               X(i,j) = 1;
+                 }
+             }
+              return X;
+             }')
+  
+  add.uneven <- function(x, y) {
+    l <- max(length(x), length(y))
+    length(x) <- l
+    length(y) <- l
+    x[is.na(x)] <- 0
+    y[is.na(y)] <- 0
+    x + y
+  }
+  
+  
+  
+  # Día 1
+  Duracion_Proceso <- extraDistr::rdunif(n =  Num_CasosIniciales,
+                                         min = InfeccionPMin, InfeccionPMax)
+  
+  vctr_DummyInfeccioso <- rep(1, Duracion_Proceso)
+  vctr_TotCasosAcumExtend <- vctr_DummyInfeccioso
+  
+  Num_casosNew <- vector(mode = "numeric")
+  Num_casosNew <- vctr_DummyInfeccioso[1]
+  
+  Num_casosTotales <- vector(mode = "numeric")
+  Num_casosTotales <- vctr_DummyInfeccioso[1]
+  
+  # Día 2 en adelante:
+  
+  for(t in 2:length(beta)){
+    Casos_nuevos <- min(rpois(n = 1, lambda = beta[t] * Num_casosTotales[t-1]), 55000000)
+    if(Casos_nuevos != 0){
+      
+      contador <- t - 1
+      tic()
+      if(Casos_nuevos < 20){
+        vctr_TotDummyInfeccioso <- colSums(rngCpp(Casos_nuevos, InfeccionPMax + (t-1),
+                                                  contador,
+                                                  InfeccionPMin, InfeccionPMax))
+        
+      }
+      else{
+        
+        gc(reset = T)
+        vctr_TotDummyInfeccioso1 <- colSums(rngCpp(floor(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        vctr_TotDummyInfeccioso2 <- colSums(rngCpp(ceiling(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        
+        vctr_TotDummyInfeccioso3 <- colSums(rngCpp(ceiling(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        
+        vctr_TotDummyInfeccioso4 <- colSums(rngCpp(ceiling(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        vctr_TotDummyInfeccioso5 <- colSums(rngCpp(ceiling(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        vctr_TotDummyInfeccioso6 <- colSums(rngCpp(ceiling(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        vctr_TotDummyInfeccioso7 <- colSums(rngCpp(ceiling(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        vctr_TotDummyInfeccioso8 <- colSums(rngCpp(ceiling(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        vctr_TotDummyInfeccioso9 <- colSums(rngCpp(ceiling(Casos_nuevos / 10), InfeccionPMax + (t-1),
+                                                   contador,
+                                                   InfeccionPMin, InfeccionPMax))
+        vctr_TotDummyInfeccioso10 <- colSums(rngCpp(Casos_nuevos-floor(Casos_nuevos/10)*9, InfeccionPMax + (t-1),
+                                                    contador,
+                                                    InfeccionPMin, InfeccionPMax))
+        
+        
+        vctr_TotDummyInfeccioso <- vctr_TotDummyInfeccioso1 + vctr_TotDummyInfeccioso2 +
+          vctr_TotDummyInfeccioso3 + vctr_TotDummyInfeccioso4 + vctr_TotDummyInfeccioso5 +
+          vctr_TotDummyInfeccioso6 + vctr_TotDummyInfeccioso7 + vctr_TotDummyInfeccioso8 +
+          vctr_TotDummyInfeccioso9 + vctr_TotDummyInfeccioso10
+      }
+      
+      gc(reset = T)
+      vctr_TotCasosAcumExtend <- add.uneven(vctr_TotCasosAcumExtend, vctr_TotDummyInfeccioso)
+      toc()
+      print(t)
+      Num_casosNew[t] <- Casos_nuevos
+      Num_casosTotales[t] <- vctr_TotCasosAcumExtend[t]
+    }
+    else{
+      Num_casosNew[t] <- 0
+      Num_casosTotales[t]  <- Num_casosTotales[t-1]
+    }
+  }
+  salida <- list(Num_casosNew, Num_casosTotales)
+  return(salida)
+}
+
+betas <- c(NA, 0.297829824451843, 0.280023004765605, 0.28337462268828,
+           0.304266076735242, 0.258258170863897, 0.249007743669315, 0.363619755022063,
+           0.34102512906686, 0.411164462578028, 0.329026015732604, 0.328930342195124,
+           0.394886748523982, 0.373291269886944, 0.360611855825103, 0.25377711646874,
+           0.610970513426969, 0.419109447076555, 0.565620432437923, 0.41359901306521,
+           0.272457413651002, 0.29218051530291, 0.291613986803359, 0.323146836925657,
+           0.194010824263043, 0.201696324983087, 0.204975147153396, 0.191630368531689,
+           0.183394123206692, 0.181100895211452, 0.185745535217011, 0.202539001189251,
+           0.155828364698871, 0.155462255566302, 0.162164975524095, 0.223583723337987,
+           0.138653148961684, 0.203652864814884, 0.17302313425544, 0.126200542624408,
+           0.21058853922314, 0.204413237210115, 0.213785830317202, 0.335499954356495,
+           0.391205790735262, 0.357291062651944, 0.34655977746585, 0.37152467446694,
+           0.328421574968253, 0.333412171395596, 0.362558465887605, 0.326671285309449,
+           0.378295227335746, 0.322686175898331, 0.34168032141136, 0.368111555043598,
+           0.365467330890586, 0.340704294076422, 0.312938377926115, 0.404327060924296,
+           rep(0.4, 40)) # 0.24
+betas2 <- betas[1:85]
+tic()
+resultado <- f_simula_proceso(betas2)
+toc()
+# 
+# tic()
+# resultado <- f_simula_proceso(betas)
+# toc()
